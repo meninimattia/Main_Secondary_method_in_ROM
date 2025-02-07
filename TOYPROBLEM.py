@@ -10,7 +10,7 @@ import time
 # Number of DoFs
 nn = 500
 
-# Number of DoFs - Number of secondary DoFs (= internal + master DoFs)
+# Number of DoFs - Number of secondary DoFs (= internal + main DoFs)
 nt = nn-int(2*np.sqrt(nn))
 
 # Creation of the matrices
@@ -20,13 +20,25 @@ v_1 = np.ones(nn-1)
 v_2 = -2*np.ones(nn)
 Lap = np.diag(v_1,-1)+np.diag(v_2,0)+np.diag(v_1,1)
 
-# Creation of the MPC matrix 
-T = np.zeros((nn,nt))
-for i in range(0,nt):
-    T[i,i] = 1
-for i in range(nt, nn):
-    T[i, nn - i - 1] = 1
-    T[i, i - nt] = 1
+# Creation of the MPC matrix
+case = 2
+if case == 1:
+	# CASE 1 
+	T = np.zeros((nn,nt))
+	for i in range(0,nt):
+		T[i,i] = 1
+	for i in range(nt, nn):
+		T[i, nn - i - 1] = 1
+		T[i, i - nt] = 1
+else:
+	# CASE 2   
+	T = np.zeros((nn,nt))
+	for i in range(0,nt):
+		T[i,i] = 1
+	for i in range(nt, nn):
+		for j in range(0,nt):
+			T[i,j] = 1/nt
+	np.random.shuffle(T)
 T = csr_matrix(T)
 
 # Vector for the MPC application
@@ -35,7 +47,7 @@ for i in range(0,nn):
     b[i] = i
 
 # Time discretization
-delta_t = 0.005
+delta_t = 0.002
 t_0 = 0
 t_end = 5
 nsteps = int((t_end-t_0)/delta_t)
@@ -120,7 +132,7 @@ print(f"\nFull Snapshots matrix")
 #   - QR decomposition
 #   - PseudoInverse of T
 #   - Least Square solution
-#   - Master Rows of the basis
+#   - Main Rows of the basis
 
 Kb = K @ b # used in more than one approaches 
 
@@ -200,13 +212,13 @@ print(f"\nAPPROACH 3")
 print(f"The norm of the error with the FOM simulation is: {norm_3}")
 print(f"The time for the ROM simulation is: {time_sol3}")
 
-# Approach 4: Master Rows of the basis
+# Approach 4: Main Rows of the basis
 ti_4 = time.time()
 MR_Phi = np.empty((nt,k))
 
-# Code used to find the master rows of a matrix
-def find_master_rows(matrix):
-	vect = [] # Vector of the "master" rows (they correspond to the master DoFs -> in the 1D case DoFs == Nodes)
+# Code used to find the main rows of a matrix
+def find_main_rows(matrix):
+	vect = [] # Vector of the "main" rows (they correspond to the main DoFs -> in the 1D case DoFs == Nodes)
 	mask = np.zeros(matrix.shape[1]) # To control if a particular column of T is already controlled
 	# This is done in order to keep only the first 0...0i0...0 type of row
 	row = 0 # To control all the rows of the matrix T
@@ -220,7 +232,7 @@ def find_master_rows(matrix):
 			vect.append(row) # indices of the row stored
 			mask[col] = 1.0 # column seen
 	return vect
-rows = find_master_rows(T)
+rows = find_main_rows(T)
 
 MR_Phi = Phi[rows,:]
 MR_b = b[rows]
@@ -245,7 +257,7 @@ print(f"The norm of the error with the FOM simulation is: {norm_4}")
 print(f"The time for the ROM simulation is: {time_sol4}")
 
 
-# REDUCED SNAPSHOTS matrix (Only "master rows" of the snapshots mastrix)
+# REDUCED SNAPSHOTS matrix (Only "main rows" of the snapshots mastrix)
 print(f"\nReduced Snapshots matrix")
 
 snapshots_t = snapshots[rows, :] - b[rows, np.newaxis]
