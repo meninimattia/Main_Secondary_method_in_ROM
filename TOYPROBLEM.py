@@ -38,7 +38,6 @@ else:
 	for i in range(nt, nn):
 		for j in range(0,nt):
 			T[i,j] = 1/nt
-	np.random.shuffle(T)
 T = csr_matrix(T)
 
 # Vector for the MPC application
