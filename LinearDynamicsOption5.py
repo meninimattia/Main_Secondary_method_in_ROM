@@ -101,7 +101,7 @@ class FOM_simulation(object):
             T1[i,i] = 1
         for i in range(t-1, self.domain.number_of_nodes-1):
             T1[i,t-i-1] = 1
-        # np.random.shuffle(T1)
+        np.random.shuffle(T1)
         T[1:,1:] = T1
         return T
 
@@ -198,9 +198,10 @@ class ROM_simulation(FOM_simulation):
     def ComputeSystemMatrix(self):
 
         T = csr_matrix(fom_simulation.T)
-        master_rows = self.find_master_rows(T)
+        master_rows, order = self.find_master_rows(T)
         
         pTPhi = self.basis[master_rows,:]
+        pTPhi = pTPhi[order]
 
         self.matrixD = fom_simulation.T @ pTPhi
 
@@ -209,6 +210,7 @@ class ROM_simulation(FOM_simulation):
 
     def find_master_rows(self, matrix):
         vect = [] 
+        columns = []
         mask = np.zeros(matrix.shape[1]) 
         row = 0
         row_length = matrix.indptr[1]
@@ -219,8 +221,12 @@ class ROM_simulation(FOM_simulation):
             # print(f"row {row}, col {col}, val {matrix.data[idx]}")
             if not(mask[col]) and row_length == 1:
                 vect.append(row)
+                columns.append(int(col))
                 mask[col] = 1.0
-        return vect
+        order = np.zeros(len(columns), dtype = int)
+        for i in range(0, len(columns)):
+            order[columns[i]] = i
+        return vect, order
 
 
     def GetInitialDisplacement(self, applied_force):
@@ -305,7 +311,7 @@ def compute_basis(SnapshotsMatrix, truncation_tolerance=1e-4):
 
 # call your function and obtain a basis from the FOM simulation snapshots
 
-basis = compute_basis(fom_simulation.SnapshotsMatrixDisplacements, 5e-7)
+basis = compute_basis(fom_simulation.SnapshotsMatrixDisplacements, 5e-8)
 
 print('\n\nThe basis shape is: ', basis.shape, '\n\n')
 
