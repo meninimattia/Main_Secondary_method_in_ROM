@@ -30,6 +30,7 @@ if case == 1:
 	for i in range(nt, nn):
 		T[i, nn - i - 1] = 1
 		T[i, i - nt] = 1
+	np.random.shuffle(T)
 else:
 	# CASE 2   
 	T = np.zeros((nn,nt))
@@ -38,6 +39,7 @@ else:
 	for i in range(nt, nn):
 		for j in range(0,nt):
 			T[i,j] = 1/nt
+	np.random.shuffle(T)
 T = csr_matrix(T)
 
 # Vector for the MPC application
@@ -218,8 +220,9 @@ MR_Phi = np.empty((nt,k))
 # Code used to find the main rows of a matrix
 def find_main_rows(matrix):
 	vect = [] # Vector of the "main" rows (they correspond to the main DoFs -> in the 1D case DoFs == Nodes)
+	columns = []
 	mask = np.zeros(matrix.shape[1]) # To control if a particular column of T is already controlled
-	# This is done in order to keep only the first 0...0i0...0 type of row
+	# This is done in order to keep only the first 0...0i0...0 type of rows
 	row = 0 # To control all the rows of the matrix T
 	row_length = matrix.indptr[1] # Initilization of the length of each row (== number of values in that particular row)
 	for idx, col in enumerate(matrix.indices): # for cycle over the columns 
@@ -229,12 +232,18 @@ def find_main_rows(matrix):
 		# print(f"row {row}, col {col}, val {matrix.data[idx]}")
 		if not(mask[col]) and row_length==1: # Storage only of the rows related to the columns never seen and with only one value inside
 			vect.append(row) # indices of the row stored
+			columns.append(int(col))
 			mask[col] = 1.0 # column seen
-	return vect
-rows = find_main_rows(T)
+	order = np.zeros(len(columns), dtype=int)
+	for i in range(0, len(columns)):
+		order[columns[i]] = i
+	return vect, order
+rows, order = find_main_rows(T)
 
 MR_Phi = Phi[rows,:]
+MR_Phi = MR_Phi[order]
 MR_b = b[rows]
+MR_b = MR_b[order]
 KTMR_b = K @ T @ MR_b
 TMR_Phi = T @ MR_Phi
 K_4 = TMR_Phi.T @ K @ TMR_Phi
@@ -260,6 +269,7 @@ print(f"The time for the ROM simulation is: {time_sol4}")
 print(f"\nReduced Snapshots matrix")
 
 snapshots_t = snapshots[rows, :] - b[rows, np.newaxis]
+snapshots_t = snapshots_t[order]
 
 # POD, computation of the SVD
 ti_SVD_t = time.time()
