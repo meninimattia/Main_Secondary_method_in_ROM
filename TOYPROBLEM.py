@@ -21,7 +21,7 @@ v_2 = -2*np.ones(nn)
 Lap = np.diag(v_1,-1)+np.diag(v_2,0)+np.diag(v_1,1)
 
 # Creation of the MPC matrix
-case = 2
+case = 1
 if case == 1:
 	# CASE 1 
 	T = np.zeros((nn,nt))
@@ -29,7 +29,6 @@ if case == 1:
 		T[i,i] = 1
 	for i in range(nt, nn):
 		T[i, nn - i - 1] = 1
-		T[i, i - nt] = 1
 	np.random.shuffle(T)
 else:
 	# CASE 2   
@@ -37,8 +36,10 @@ else:
 	for i in range(0,nt):
 		T[i,i] = 1
 	for i in range(nt, nn):
-		for j in range(0,nt):
-			T[i,j] = 1/nt
+		index = np.random.choice(np.arange(0, nt), size = 3, replace = False)
+		T[i,index[0]] = 1/np.random.choice(np.arange(1,10))
+		T[i,index[1]] = 1/np.random.choice(np.arange(1,10))
+		T[i,index[2]] = 1/np.random.choice(np.arange(1,10))
 	np.random.shuffle(T)
 T = csr_matrix(T)
 
@@ -48,7 +49,7 @@ for i in range(0,nn):
     b[i] = i
 
 # Time discretization
-delta_t = 0.002
+delta_t = 0.005
 t_0 = 0
 t_end = 5
 nsteps = int((t_end-t_0)/delta_t)
@@ -162,6 +163,8 @@ print(f"\nAPPROACH 1")
 print(f"The norm of the error with the FOM simulation is: {norm_1}")
 print(f"The time for the ROM simulation is: {time_sol1}")
 
+del sol_1
+
 # Approach 2: PseudoInverse of T
 ti_2 = time.time()
 m_F2 = Phi.T @ linalg.pinv(T.toarray()).T @ T.T
@@ -185,6 +188,8 @@ norm_2 = linalg.norm(snapshots - sol_2)/norm_S
 print(f"\nAPPROACH 2")
 print(f"The norm of the error with the FOM simulation is: {norm_2}")
 print(f"The time for the ROM simulation is: {time_sol2}")
+
+del sol_2
 
 # Approach 3: Least Square solution
 ti_3 = time.time()
@@ -212,6 +217,8 @@ norm_3 = linalg.norm(snapshots - sol_3)/norm_S
 print(f"\nAPPROACH 3")
 print(f"The norm of the error with the FOM simulation is: {norm_3}")
 print(f"The time for the ROM simulation is: {time_sol3}")
+
+del sol_3
 
 # Approach 4: Main Rows of the basis
 ti_4 = time.time()
@@ -264,6 +271,7 @@ print(f"\nAPPROACH 4")
 print(f"The norm of the error with the FOM simulation is: {norm_4}")
 print(f"The time for the ROM simulation is: {time_sol4}")
 
+del sol_4
 
 # REDUCED SNAPSHOTS matrix (Only "main rows" of the snapshots mastrix)
 print(f"\nReduced Snapshots matrix")
