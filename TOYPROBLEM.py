@@ -7,8 +7,10 @@ from scipy.sparse.linalg import lsqr, spsolve
 from matplotlib import pyplot as plt
 import time
 
+np.random.seed(1)
+
 # Number of DoFs
-nn = 500
+nn = ...
 
 # Number of DoFs - Number of secondary DoFs (= internal + main DoFs)
 nt = nn-int(2*np.sqrt(nn))
@@ -27,8 +29,8 @@ if case == 1:
 	T = np.zeros((nn,nt))
 	for i in range(0,nt):
 		T[i,i] = 1
-	for i in range(nt, nn):
-		T[i, nn - i - 1] = 1
+	for i in range(0, nn):
+		T[i, i-nt] = 1
 	np.random.shuffle(T)
 else:
 	# CASE 2   
@@ -49,7 +51,7 @@ for i in range(0,nn):
     b[i] = i
 
 # Time discretization
-delta_t = 0.005
+delta_t = ...
 t_0 = 0
 t_end = 5
 nsteps = int((t_end-t_0)/delta_t)
@@ -90,7 +92,7 @@ print(f"\nThe time to solve the FOM system is: {time_FOM}")
 
 # POD, computation of the SVD
 ti_SVD = time.time()
-U, S, Vt = linalg.svd(snapshots)
+U, S, Vt = linalg.svd(snapshots, full_matrices=False)
 
 # Graph of the singular values
 ControlGraph = False
@@ -120,7 +122,7 @@ for t_1 in range(1,m):
 		k = t_1
 		break 
     
-k = 13 # To fix a value
+k = ... # To fix a value
  
 Phi = U[:,:k]
 print(f"\nThe basis shape for X is: {np.shape(Phi)}")
@@ -281,7 +283,7 @@ snapshots_t = snapshots_t[order]
 
 # POD, computation of the SVD
 ti_SVD_t = time.time()
-U_t, S_t, Vt_t = linalg.svd(snapshots_t)
+U_t, S_t, Vt_t = linalg.svd(snapshots_t, full_matrices=False)
 
 # Graph of the singular values
 if ControlGraph == True:
@@ -310,7 +312,7 @@ for t_1 in range(1,m):
 		k = t_1
 		break 
     
-k = 13 # To fix a value
+k = ... # To fix a value
  
 Phi_t = U_t[:,:k]
 print(f"\nThe basis shape for X is: {np.shape(Phi_t)}")
