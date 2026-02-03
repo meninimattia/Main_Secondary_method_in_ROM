@@ -10,7 +10,7 @@ import time
 np.random.seed(1)
 
 # Number of DoFs
-nn = ...
+nn = 100
 
 # Number of DoFs - Number of secondary DoFs (= internal + main DoFs)
 nt = nn-int(2*np.sqrt(nn))
@@ -51,10 +51,11 @@ for i in range(0,nn):
     b[i] = i
 
 # Time discretization
-delta_t = ...
+nsteps = 500
 t_0 = 0
 t_end = 5
-nsteps = int((t_end-t_0)/delta_t)
+delta_t = (t_end-t_0)/nsteps
+print(f"\nThe interval of time is: {delta_t}")
 
 # FOM system
 K = M + delta_t*Lap
@@ -72,7 +73,7 @@ sol_3 = np.zeros((nn,nsteps))
 sol_4 = np.zeros((nn,nsteps))
 sol_5 = np.zeros((nn,nsteps))
 
-# Initial condition, random
+# Initial condition
 u_0 = np.zeros(nn)
 for i in range(0,nn):
     u_0[i] = i
@@ -107,22 +108,24 @@ if ControlGraph == True:
     plt.show
    
 # Computation of the basis for the POD
+ControlNumberModes = False
 norm_S = linalg.norm(snapshots)
-m = np.size(S)
-k = m
-truncation_tolerance = 1e-16
-for t_1 in range(1,m):
-	numerator = 0
-	denominator = 0
-	for t_2 in range(t_1,m):
-		numerator += S[t_2]**2
-	for t_3 in range (0,t_1):
-		denominator += S[t_3]**2
-	if np.sqrt(numerator/denominator) <= (truncation_tolerance * norm_S):
-		k = t_1
-		break 
+if ControlNumberModes == True:
+	m = np.size(S)
+	k = m
+	truncation_tolerance = 1e-16
+	for t_1 in range(1,m):
+		numerator = 0
+		denominator = 0
+		for t_2 in range(t_1,m):
+			numerator += S[t_2]**2
+		for t_3 in range (0,t_1):
+			denominator += S[t_3]**2
+		if np.sqrt(numerator/denominator) <= (truncation_tolerance * norm_S):
+			k = t_1
+			break 
     
-k = ... # To fix a value
+k = 50 # To fix a value
  
 Phi = U[:,:k]
 print(f"\nThe basis shape for X is: {np.shape(Phi)}")
@@ -312,7 +315,7 @@ for t_1 in range(1,m):
 		k = t_1
 		break 
     
-k = ... # To fix a value
+k = 50 # To fix a value
  
 Phi_t = U_t[:,:k]
 print(f"\nThe basis shape for X is: {np.shape(Phi_t)}")
