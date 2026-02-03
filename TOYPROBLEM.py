@@ -106,25 +106,9 @@ if ControlGraph == True:
     plt.ylabel('Value of singular values')
     plt.grid(False)
     plt.show
-   
-# Computation of the basis for the POD
-ControlNumberModes = False
+
 norm_S = linalg.norm(snapshots)
-if ControlNumberModes == True:
-	m = np.size(S)
-	k = m
-	truncation_tolerance = 1e-16
-	for t_1 in range(1,m):
-		numerator = 0
-		denominator = 0
-		for t_2 in range(t_1,m):
-			numerator += S[t_2]**2
-		for t_3 in range (0,t_1):
-			denominator += S[t_3]**2
-		if np.sqrt(numerator/denominator) <= (truncation_tolerance * norm_S):
-			k = t_1
-			break 
-    
+
 k = 50 # To fix a value
  
 Phi = U[:,:k]
@@ -301,20 +285,7 @@ if ControlGraph == True:
    
 # Computation of the basis for the POD
 norm_S_t = linalg.norm(snapshots_t)
-m = np.size(S_t)
-k = m
-truncation_tolerance_t = 1e-16
-for t_1 in range(1,m):
-	numerator = 0
-	denominator = 0
-	for t_2 in range(t_1,m):
-		numerator += S[t_2]**2
-	for t_3 in range (0,t_1):
-		denominator += S[t_3]**2
-	if np.sqrt(numerator/denominator) <= (truncation_tolerance_t * norm_S_t):
-		k = t_1
-		break 
-    
+
 k = 50 # To fix a value
  
 Phi_t = U_t[:,:k]
@@ -337,6 +308,7 @@ for i in range(0,nsteps):
 	sol_5[:,i] = u
 
 time_sol5 = time.time() - ti_5
-norm_5 = linalg.norm(snapshots - sol_5)/norm_S
+norm_5 = linalg.norm(snapshots - sol_5)/norm_S_t
 print(f"\nThe norm of the error with the FOM simulation is: {norm_5}")
 print(f"The time for the ROM simulation is: {time_sol5}")
+
