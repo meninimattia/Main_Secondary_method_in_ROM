@@ -9,8 +9,10 @@ import time
 
 np.random.seed(1)
 
+data = [1, 1000, 2500, 50, 50]
+
 # Number of DoFs
-nn = 100
+nn = data[1]
 
 # Number of DoFs - Number of secondary DoFs (= internal + main DoFs)
 nt = nn-int(2*np.sqrt(nn))
@@ -23,7 +25,7 @@ v_2 = -2*np.ones(nn)
 Lap = np.diag(v_1,-1)+np.diag(v_2,0)+np.diag(v_1,1)
 
 # Creation of the MPC matrix
-case = 1
+case = data[0]
 if case == 1:
 	# CASE 1 
 	T = np.zeros((nn,nt))
@@ -51,7 +53,7 @@ for i in range(0,nn):
     b[i] = i
 
 # Time discretization
-nsteps = 500
+nsteps = data[2]
 t_0 = 0
 t_end = 5
 delta_t = (t_end-t_0)/nsteps
@@ -87,7 +89,27 @@ for i in range(0,nsteps):
     u_hat = spsolve(K_hat, f_hat)
     u = T @ u_hat + b 
     snapshots[:,i] = u
- 
+
+#plt.figure(2)
+#print_nodes = np.linspace(0, 10, nn)
+#
+#ti_FOM = time.time()
+#for i in range(0, nsteps):
+#    f = M @ u - K @ b
+#    f_hat = T.T @ f 
+#    u_hat = spsolve(K_hat, f_hat)
+#    u = T @ u_hat + b 
+#    snapshots[:, i] = u
+#
+#    plt.cla()         
+#    plt.plot(print_nodes, u, 'b-')
+#    plt.title(f"FOM Solution - Step {i}")
+#    plt.xlabel("Nodes")
+#    plt.ylabel("u")
+#    plt.pause(0.01)    
+#
+#plt.show()
+
 time_FOM = time.time() - ti_FOM
 print(f"\nThe time to solve the FOM system is: {time_FOM}")
 
@@ -99,17 +121,34 @@ U, S, Vt = linalg.svd(snapshots, full_matrices=False)
 ControlGraph = False
 if ControlGraph == True:
     n_data = np.arange(1,len(S) + 1)
-    plt.figure()
+    plt.figure(1)
     plt.plot(n_data, S, marker = 'o', linestyle = '-', color = 'm')
     plt.yscale('log')
     plt.xlabel('Number of singular values')
     plt.ylabel('Value of singular values')
     plt.grid(False)
-    plt.show
-
+    plt.show()
+   
+# Computation of the basis for the POD -> since the problem is not physical this is not good
+# indeed the first singular value is 2 orders of magnitude higher than the second one -> only one mode
+ControlNumberModes = False
 norm_S = linalg.norm(snapshots)
-
-k = 50 # To fix a value
+if ControlNumberModes == True:
+	m = np.size(S)
+	k = m
+	truncation_tolerance = 1e-12
+	for t_1 in range(1,m):
+		numerator = 0
+		denominator = 0
+		for t_2 in range(t_1,m):
+			numerator += S[t_2]**2
+		for t_3 in range (0,t_1):
+			denominator += S[t_3]**2
+		if np.sqrt(numerator/denominator) <= (truncation_tolerance * norm_S):
+			k = t_1
+			break 
+    
+k = data[3] # To fix a value
  
 Phi = U[:,:k]
 print(f"\nThe basis shape for X is: {np.shape(Phi)}")
@@ -285,8 +324,21 @@ if ControlGraph == True:
    
 # Computation of the basis for the POD
 norm_S_t = linalg.norm(snapshots_t)
-
-k = 50 # To fix a value
+m = np.size(S_t)
+k = m
+truncation_tolerance_t = 1e-16
+for t_1 in range(1,m):
+	numerator = 0
+	denominator = 0
+	for t_2 in range(t_1,m):
+		numerator += S[t_2]**2
+	for t_3 in range (0,t_1):
+		denominator += S[t_3]**2
+	if np.sqrt(numerator/denominator) <= (truncation_tolerance_t * norm_S_t):
+		k = t_1
+		break 
+    
+k = data[4] # To fix a value
  
 Phi_t = U_t[:,:k]
 print(f"\nThe basis shape for X is: {np.shape(Phi_t)}")
@@ -311,4 +363,3 @@ time_sol5 = time.time() - ti_5
 norm_5 = linalg.norm(snapshots - sol_5)/norm_S_t
 print(f"\nThe norm of the error with the FOM simulation is: {norm_5}")
 print(f"The time for the ROM simulation is: {time_sol5}")
-
