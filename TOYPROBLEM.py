@@ -97,18 +97,18 @@ if ControlPlot == True:
 	
 	ti_FOM = time.time()
 	for i in range(0, nsteps):
-    	f = M @ u - K @ b
-    	f_hat = T.T @ f 
-    	u_hat = spsolve(K_hat, f_hat)
-    	u = T @ u_hat + b 
-    	snapshots[:, i] = u
-	
-    	plt.cla()         
-    	plt.plot(print_nodes, u, 'b-')
-    	plt.title(f"FOM Solution - Step {i}")
-    	plt.xlabel("Nodes")
-    	plt.ylabel("u")
-    	plt.pause(0.01)    
+		f = M @ u - K @ b
+		f_hat = T.T @ f 
+		u_hat = spsolve(K_hat, f_hat)
+		u = T @ u_hat + b 
+		snapshots[:, i] = u
+		
+		plt.cla()         
+		plt.plot(print_nodes, u, 'b-')
+		plt.title(f"FOM Solution - Step {i}")
+		plt.xlabel("Nodes")
+		plt.ylabel("u")
+		plt.pause(0.01)    
 	
 	plt.show()
 
@@ -365,4 +365,3 @@ time_sol5 = time.time() - ti_5
 norm_5 = linalg.norm(snapshots - sol_5)/norm_S_t
 print(f"\nThe norm of the error with the FOM simulation is: {norm_5}")
 print(f"The time for the ROM simulation is: {time_sol5}")
-
