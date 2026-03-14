@@ -171,11 +171,12 @@ Kb = K @ b # used in more than one approaches
 # Approach 1: QR decomposition
 ti_1 = time.time()
 Q, R = np.linalg.qr(T.toarray())
-m_F1 = Phi.T @ Q @ np.linalg.pinv(R).T @ T.T 
+Rinv = np.linalg.pinv(R)
+m_F1 = Phi.T @ Q @ Rinv.T @ T.T 
 K_1 = m_F1 @ K @ m_F1.T
 K_1 = csr_matrix(K_1)
-m_U1 = np.linalg.pinv(R) @ Q.T @ Phi
-b_U1 = np.linalg.pinv(R) @ Q.T @ b 
+m_U1 = Rinv @ Q.T @ Phi
+b_U1 = Rinv @ Q.T @ b 
 b_F1 = m_F1 @ K @ T @ b_U1
 
 u = u_0
@@ -197,11 +198,12 @@ del sol_1
 
 # Approach 2: PseudoInverse of T
 ti_2 = time.time()
-m_F2 = Phi.T @ linalg.pinv(T.toarray()).T @ T.T
+Tinv = linalg.pinv(T.toarray())
+m_F2 = Phi.T @ Tinv.T @ T.T
 K_2 = m_F2 @ K @ m_F2.T
 K_2 = csr_matrix(K_2)
-m_U2 = linalg.pinv(T.toarray()) @ Phi
-b_U2 = linalg.pinv(T.toarray()) @ b
+m_U2 = Tinv @ Phi
+b_U2 = Tinv @ b
 b_F2 = m_F2 @ K @ T @ b_U2
 
 u = u_0
