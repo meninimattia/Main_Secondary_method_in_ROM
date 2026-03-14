@@ -362,6 +362,6 @@ for i in range(0,nsteps):
 	sol_5[:,i] = u
 
 time_sol5 = time.time() - ti_5
-norm_5 = linalg.norm(snapshots - sol_5)/norm_S_t
+norm_5 = linalg.norm(snapshots - sol_5)/norm_S
 print(f"\nThe norm of the error with the FOM simulation is: {norm_5}")
 print(f"The time for the ROM simulation is: {time_sol5}")
