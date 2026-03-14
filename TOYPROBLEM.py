@@ -31,7 +31,7 @@ if case == 1:
 	T = np.zeros((nn,nt))
 	for i in range(0,nt):
 		T[i,i] = 1
-	for i in range(0, nn):
+	for i in range(nt, nn):
 		T[i, i-nt] = 1
 	np.random.shuffle(T)
 else:
